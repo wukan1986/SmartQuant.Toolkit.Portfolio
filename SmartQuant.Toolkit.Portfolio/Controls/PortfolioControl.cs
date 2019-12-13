@@ -42,12 +42,18 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
             InitializeComponent();
 
             this.comboBox_show_type.Items.AddRange(Enum.GetNames(typeof(ShowType)));
-            this.comboBox_show_type.SelectedIndex = 0;
         }
 
         protected override void OnInit()
         {
-            refresh();
+            this.comboBox_show_type.SelectedIndex = 0;
+
+            framework.EventManager.Dispatcher.PositionChanged += Dispatcher_PositionChanged;
+        }
+
+        private void Dispatcher_PositionChanged(object sender, PositionEventArgs args)
+        {
+            InvokeAction(delegate () { refresh(); });
         }
 
         private void refresh()
@@ -63,17 +69,14 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                 columnIndex = this.treeGridView1.CurrentCell.ColumnIndex;
             }
 
-            // 改完以后，当前节点的父节点也更新了，但由于是传的字符串，所还没办法直接更新
-            Clear();
-            ShowType show_type = (ShowType)Enum.Parse(typeof(ShowType), this.comboBox_show_type.SelectedItem.ToString());
-
-            // 应当实现一种机制
             // 1. 树结构完全显示
             // 2. 只显示持仓
             // 3. 只显示资金
+            ShowType show_type = (ShowType)Enum.Parse(typeof(ShowType), this.comboBox_show_type.SelectedItem.ToString());
 
+            Clear();
             // 显示投资组合
-            if(show_type == ShowType.All || show_type == ShowType.PortfolioOnly)
+            if (show_type == ShowType.All || show_type == ShowType.PortfolioOnly)
             {
                 foreach (var portfolio in framework.PortfolioManager.Portfolios)
                 {
@@ -195,7 +198,7 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                 null,
                 portfolio.AccountValue,
                 null,
-                DateTime.Now.Date
+                DateTime.Today
                 );
 
             node.Cells[IDX_Symbol].ReadOnly = false;
@@ -280,67 +283,38 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
             {
                 AddPositions(portfolio, node.Nodes, hasChildren);
             }
-
-            //switch (show_type)
-            //{
-            //    case ShowType.All:
-            //        node = AddPortfolio(portfolio, Nodes, hasChildren);
-            //        AddPositions(portfolio, node.Nodes, hasChildren);
-            //        node.Expand();
-            //        break;
-            //    case ShowType.PortfolioOnly:
-            //        node = AddPortfolio(portfolio, Nodes, hasChildren);
-            //        node.Expand();
-            //        break;
-            //    case ShowType.PositionOnly:
-            //        // 只显示根节点
-            //        // 注意，如果出现在父节点上添加持仓将无法处理，所以最好不要使用特别的用法
-            //        if (hasChildren)
-            //            return;
-            //        AddPositions(portfolio, this.treeGridView1.Nodes, hasChildren);
-            //        break;
-            //}
         }
 
-        private void treeGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private DateTime GetCellDateTime(DataGridViewCell cell)
         {
-            // 这种方法只是修改了内存，所以业绩为会有保留
-
-            object obj;
-            if (!nodes_position_portfolio.TryGetValue(this.treeGridView1.CurrentNode, out obj))
-                return;
-
-            var pf = obj as SmartQuant.Portfolio;
-            var pos = obj as SmartQuant.Position;
-            if (pf == null)
-            {
-                pf = pos.Portfolio;
-            }
-            if (this.treeGridView1.CurrentCell.Value == null)
-            {
-                return;
-            }
-
-            double lastPrice = 0;
             DateTime dateTime = DateTime.Today;
-
-            var price_cell = this.treeGridView1.Rows[this.treeGridView1.CurrentCell.RowIndex].Cells[IDX_EntryPrice];
-            var datetime_cell = this.treeGridView1.Rows[this.treeGridView1.CurrentCell.RowIndex].Cells[IDX_EntryDate];
-
-            if (price_cell.Value != null)
+            if (cell.Value != null)
             {
-                lastPrice = double.Parse(price_cell.Value.ToString());
+                dateTime = Convert.ToDateTime(cell.Value);
             }
-            if (datetime_cell.Value != null)
+            return dateTime;
+        }
+
+        private double GetCellDouble(DataGridViewCell cell)
+        {
+            double db = 0;
+            if (cell.Value != null)
             {
-                dateTime = DateTime.Parse(datetime_cell.Value.ToString());
+                db = Convert.ToDouble(cell.Value);
             }
+            return db;
+        }
+
+        private void CellEndEdit(SmartQuant.Portfolio pf, SmartQuant.Position pos)
+        {
+            double price = GetCellDouble(this.treeGridView1.Rows[this.treeGridView1.CurrentCell.RowIndex].Cells[IDX_EntryPrice]);
+            DateTime dateTime = GetCellDateTime(this.treeGridView1.Rows[this.treeGridView1.CurrentCell.RowIndex].Cells[IDX_EntryDate]);
 
             switch (this.treeGridView1.CurrentCell.ColumnIndex)
             {
                 case IDX_AccountValue:
                     {
-                        double new_data = double.Parse(this.treeGridView1.CurrentCell.Value.ToString());
+                        double new_data = GetCellDouble(this.treeGridView1.CurrentCell);
                         PortfolioHelper.AddAccountValue(framework, pf, dateTime,
                             pf.Account.CurrencyId, pf.AccountValue, new_data, "TreeGridView");
                     }
@@ -352,7 +326,7 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                             Console.WriteLine("Error:Position == null");
                             return;
                         }
-                        double new_data = double.Parse(this.treeGridView1.CurrentCell.Value.ToString());
+                        double new_data = GetCellDouble(this.treeGridView1.CurrentCell);
                         if (new_data < 0)
                         {
                             Console.WriteLine("Error:Short must >0");
@@ -360,7 +334,7 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                         }
                         PortfolioHelper.AddShortPosition(framework, pf, dateTime,
                             pos.Instrument, pos.Instrument.CurrencyId,
-                            pos.ShortPositionQty, new_data, lastPrice, "TreeGridView");
+                            pos.ShortPositionQty, new_data, price, "TreeGridView");
                     }
                     break;
                 case IDX_Long:
@@ -370,7 +344,7 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                             Console.WriteLine("Error:Position == null");
                             return;
                         }
-                        double new_data = double.Parse(this.treeGridView1.CurrentCell.Value.ToString());
+                        double new_data = GetCellDouble(this.treeGridView1.CurrentCell);
                         if (new_data < 0)
                         {
                             Console.WriteLine("Error:Long must >0");
@@ -378,12 +352,12 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                         }
                         PortfolioHelper.AddLongPosition(framework, pf, dateTime,
                             pos.Instrument, pos.Instrument.CurrencyId,
-                            pos.LongPositionQty, new_data, lastPrice, "TreeGridView");
+                            pos.LongPositionQty, new_data, price, "TreeGridView");
                     }
                     break;
                 case IDX_Symbol:
                     {
-                        var new_data = this.treeGridView1.CurrentCell.Value.ToString();
+                        string new_data = this.treeGridView1.CurrentCell.Value.ToString();
                         if (string.IsNullOrWhiteSpace(new_data))
                         {
                             Console.WriteLine("Error:Symbol is empty");
@@ -404,21 +378,40 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                             return;
                         }
 
-                        // 这种方法Position没有正确维护，再收到回报时会另创建一个
-                        // pf.Positions.Add(new Position(pf, inst));
-
                         PortfolioHelper.AddPosition2(framework, pf, dateTime,
-                            inst, inst.CurrencyId, OrderSide.Buy, SubSide.Undefined, 0, 0, "TreeGridView");
-
-                        refresh();
+                            inst, inst.CurrencyId, OrderSide.Buy, SubSide.Undefined, 0, price, "TreeGridView");
                     }
                     break;
                 default:
                     return;
             }
+        }
 
-            // 刷新显示
-            // refresh();
+        private void treeGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            object obj;
+            if (!nodes_position_portfolio.TryGetValue(this.treeGridView1.CurrentNode, out obj))
+                return;
+
+            var pf = obj as SmartQuant.Portfolio;
+            var pos = obj as SmartQuant.Position;
+            if (pf == null)
+            {
+                pf = pos.Portfolio;
+            }
+            if (this.treeGridView1.CurrentCell.Value == null)
+            {
+                return;
+            }
+
+            try
+            {
+                CellEndEdit(pf, pos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
         }
 
         private void button_refresh_Click(object sender, EventArgs e)
@@ -556,6 +549,11 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                 }
             }
 
+            // refresh();
+        }
+
+        private void comboBox_show_type_SelectedIndexChanged(object sender, EventArgs e)
+        {
             refresh();
         }
     }

@@ -140,6 +140,7 @@
             this.comboBox_show_type.Name = "comboBox_show_type";
             this.comboBox_show_type.Size = new System.Drawing.Size(121, 21);
             this.comboBox_show_type.TabIndex = 2;
+            this.comboBox_show_type.SelectedIndexChanged += new System.EventHandler(this.comboBox_show_type_SelectedIndexChanged);
             // 
             // button_export
             // 
