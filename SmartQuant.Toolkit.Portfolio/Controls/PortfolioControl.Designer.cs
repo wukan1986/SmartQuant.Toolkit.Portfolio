@@ -28,6 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.button_refresh = new System.Windows.Forms.Button();
+            this.comboBox_show_type = new System.Windows.Forms.ComboBox();
+            this.button_export = new System.Windows.Forms.Button();
+            this.button_import = new System.Windows.Forms.Button();
+            this.comboBox_persistence = new System.Windows.Forms.ComboBox();
+            this.button_export_all = new System.Windows.Forms.Button();
+            this.checkBox_auto_refresh = new System.Windows.Forms.CheckBox();
             this.treeGridView1 = new AdvancedDataGridView.TreeGridView();
             this.PortfolioName = new AdvancedDataGridView.TreeGridColumn();
             this.Symbol = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -37,12 +44,79 @@
             this.AccountValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.EntryPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.EntryDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.button_refresh = new System.Windows.Forms.Button();
-            this.comboBox_show_type = new System.Windows.Forms.ComboBox();
-            this.button_export = new System.Windows.Forms.Button();
-            this.button_import = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.treeGridView1)).BeginInit();
             this.SuspendLayout();
+            // 
+            // button_refresh
+            // 
+            this.button_refresh.Location = new System.Drawing.Point(148, 14);
+            this.button_refresh.Name = "button_refresh";
+            this.button_refresh.Size = new System.Drawing.Size(75, 23);
+            this.button_refresh.TabIndex = 1;
+            this.button_refresh.Text = "Refresh";
+            this.button_refresh.UseVisualStyleBackColor = true;
+            this.button_refresh.Click += new System.EventHandler(this.button_refresh_Click);
+            // 
+            // comboBox_show_type
+            // 
+            this.comboBox_show_type.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_show_type.FormattingEnabled = true;
+            this.comboBox_show_type.Location = new System.Drawing.Point(11, 14);
+            this.comboBox_show_type.Name = "comboBox_show_type";
+            this.comboBox_show_type.Size = new System.Drawing.Size(121, 21);
+            this.comboBox_show_type.TabIndex = 2;
+            this.comboBox_show_type.SelectedIndexChanged += new System.EventHandler(this.comboBox_show_type_SelectedIndexChanged);
+            // 
+            // button_export
+            // 
+            this.button_export.Location = new System.Drawing.Point(348, 14);
+            this.button_export.Name = "button_export";
+            this.button_export.Size = new System.Drawing.Size(75, 23);
+            this.button_export.TabIndex = 3;
+            this.button_export.Text = "Export CSV";
+            this.button_export.UseVisualStyleBackColor = true;
+            this.button_export.Click += new System.EventHandler(this.button_export_Click);
+            // 
+            // button_import
+            // 
+            this.button_import.Location = new System.Drawing.Point(434, 14);
+            this.button_import.Name = "button_import";
+            this.button_import.Size = new System.Drawing.Size(75, 23);
+            this.button_import.TabIndex = 4;
+            this.button_import.Text = "Import CSV";
+            this.button_import.UseVisualStyleBackColor = true;
+            this.button_import.Click += new System.EventHandler(this.button_import_Click);
+            // 
+            // comboBox_persistence
+            // 
+            this.comboBox_persistence.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_persistence.FormattingEnabled = true;
+            this.comboBox_persistence.Location = new System.Drawing.Point(530, 16);
+            this.comboBox_persistence.Name = "comboBox_persistence";
+            this.comboBox_persistence.Size = new System.Drawing.Size(121, 21);
+            this.comboBox_persistence.TabIndex = 2;
+            this.comboBox_persistence.SelectedIndexChanged += new System.EventHandler(this.comboBox_persistence_SelectedIndexChanged);
+            // 
+            // button_export_all
+            // 
+            this.button_export_all.Location = new System.Drawing.Point(672, 14);
+            this.button_export_all.Name = "button_export_all";
+            this.button_export_all.Size = new System.Drawing.Size(75, 23);
+            this.button_export_all.TabIndex = 6;
+            this.button_export_all.Text = "Export All";
+            this.button_export_all.UseVisualStyleBackColor = true;
+            this.button_export_all.Click += new System.EventHandler(this.button_export_all_Click);
+            // 
+            // checkBox_auto_refresh
+            // 
+            this.checkBox_auto_refresh.AutoSize = true;
+            this.checkBox_auto_refresh.Location = new System.Drawing.Point(241, 18);
+            this.checkBox_auto_refresh.Name = "checkBox_auto_refresh";
+            this.checkBox_auto_refresh.Size = new System.Drawing.Size(88, 17);
+            this.checkBox_auto_refresh.TabIndex = 7;
+            this.checkBox_auto_refresh.Text = "Auto Refresh";
+            this.checkBox_auto_refresh.UseVisualStyleBackColor = true;
+            this.checkBox_auto_refresh.CheckedChanged += new System.EventHandler(this.checkBox_auto_refresh_CheckedChanged);
             // 
             // treeGridView1
             // 
@@ -122,52 +196,15 @@
             this.EntryDate.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.EntryDate.Width = 140;
             // 
-            // button_refresh
-            // 
-            this.button_refresh.Location = new System.Drawing.Point(148, 14);
-            this.button_refresh.Name = "button_refresh";
-            this.button_refresh.Size = new System.Drawing.Size(75, 23);
-            this.button_refresh.TabIndex = 1;
-            this.button_refresh.Text = "Refresh";
-            this.button_refresh.UseVisualStyleBackColor = true;
-            this.button_refresh.Click += new System.EventHandler(this.button_refresh_Click);
-            // 
-            // comboBox_show_type
-            // 
-            this.comboBox_show_type.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox_show_type.FormattingEnabled = true;
-            this.comboBox_show_type.Location = new System.Drawing.Point(11, 14);
-            this.comboBox_show_type.Name = "comboBox_show_type";
-            this.comboBox_show_type.Size = new System.Drawing.Size(121, 21);
-            this.comboBox_show_type.TabIndex = 2;
-            this.comboBox_show_type.SelectedIndexChanged += new System.EventHandler(this.comboBox_show_type_SelectedIndexChanged);
-            // 
-            // button_export
-            // 
-            this.button_export.Location = new System.Drawing.Point(267, 14);
-            this.button_export.Name = "button_export";
-            this.button_export.Size = new System.Drawing.Size(75, 23);
-            this.button_export.TabIndex = 3;
-            this.button_export.Text = "Export";
-            this.button_export.UseVisualStyleBackColor = true;
-            this.button_export.Click += new System.EventHandler(this.button_export_Click);
-            // 
-            // button_import
-            // 
-            this.button_import.Location = new System.Drawing.Point(353, 14);
-            this.button_import.Name = "button_import";
-            this.button_import.Size = new System.Drawing.Size(75, 23);
-            this.button_import.TabIndex = 4;
-            this.button_import.Text = "Import";
-            this.button_import.UseVisualStyleBackColor = true;
-            this.button_import.Click += new System.EventHandler(this.button_import_Click);
-            // 
             // PortfolioControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.checkBox_auto_refresh);
+            this.Controls.Add(this.button_export_all);
             this.Controls.Add(this.button_import);
             this.Controls.Add(this.button_export);
+            this.Controls.Add(this.comboBox_persistence);
             this.Controls.Add(this.comboBox_show_type);
             this.Controls.Add(this.button_refresh);
             this.Controls.Add(this.treeGridView1);
@@ -175,6 +212,7 @@
             this.Size = new System.Drawing.Size(985, 342);
             ((System.ComponentModel.ISupportInitialize)(this.treeGridView1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -193,5 +231,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn EntryPrice;
         private System.Windows.Forms.DataGridViewTextBoxColumn EntryDate;
         private System.Windows.Forms.Button button_import;
+        private System.Windows.Forms.ComboBox comboBox_persistence;
+        private System.Windows.Forms.Button button_export_all;
+        private System.Windows.Forms.CheckBox checkBox_auto_refresh;
     }
 }

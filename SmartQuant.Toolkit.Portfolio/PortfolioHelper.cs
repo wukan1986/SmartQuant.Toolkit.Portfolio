@@ -49,7 +49,15 @@ namespace SmartQuant.Toolkit.Portfolio
             var executionCommand = new ExecutionCommand(ExecutionCommandType.Send, order);
             executionCommand.DateTime = dateTime;
             executionCommand.IsLoaded = true;
+            framework.OrderManager.Messages.Add(executionCommand);
+            order.OnExecutionCommand(executionCommand);
             framework.EventServer.OnEvent(executionCommand);
+
+            // 直接保存不管用
+            //if (framework.StrategyManager.Persistence == StrategyPersistence.Save || framework.StrategyManager.Persistence == StrategyPersistence.Full)
+            //{
+            //    framework.OrderServer.Save(executionCommand);
+            //}
 
             // 模拟成交
             var executionReport = new ExecutionReport(executionCommand);
@@ -61,6 +69,9 @@ namespace SmartQuant.Toolkit.Portfolio
             executionReport.LeavesQty = 0;
             executionReport.CumQty = qty;
             executionReport.IsLoaded = true;
+            // 成交不需要额外添加
+            // framework.OrderManager.Messages.Add(executionReport);
+            order.OnExecutionReport(executionReport);
             framework.EventServer.OnEvent(executionReport);
         }
 

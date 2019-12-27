@@ -11,6 +11,8 @@ using System.Windows.Forms;
 using SmartQuant;
 using SmartQuant.Controls;
 using AdvancedDataGridView;
+using OpenQuant;
+using System.IO;
 
 namespace SmartQuant.Toolkit.Portfolio.Controls
 {
@@ -32,6 +34,8 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
         public const int IDX_EntryPrice = 6;
         public const int IDX_EntryDate = 7;
 
+        private bool bAutoRefresh;
+
         // 主要用于从父节点中添加子节点时找到父节点
         private Dictionary<SmartQuant.Portfolio, TreeGridNode> portfolio_nodes = new Dictionary<SmartQuant.Portfolio, TreeGridNode>();
         // 主要用于修改节点时定位到对应的投资组合
@@ -42,18 +46,30 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
             InitializeComponent();
 
             this.comboBox_show_type.Items.AddRange(Enum.GetNames(typeof(ShowType)));
+            this.comboBox_persistence.Items.AddRange(Enum.GetNames(typeof(StrategyPersistence)));
         }
 
         protected override void OnInit()
         {
             this.comboBox_show_type.SelectedIndex = 0;
+            this.comboBox_persistence.SelectedIndex = (int)framework.StrategyManager.Persistence;
 
             framework.EventManager.Dispatcher.PositionChanged += Dispatcher_PositionChanged;
         }
 
+        protected override void OnClosing(CancelEventArgs args)
+        {
+            framework.EventManager.Dispatcher.PositionChanged -= Dispatcher_PositionChanged;
+
+            base.OnClosing(args);
+        }
+
         private void Dispatcher_PositionChanged(object sender, PositionEventArgs args)
         {
-            InvokeAction(delegate () { refresh(); });
+            if (bAutoRefresh)
+            {
+                InvokeAction(delegate () { refresh(); });
+            }
         }
 
         private void refresh()
@@ -100,6 +116,8 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
                 this.treeGridView1.Rows[rowIndex].Selected = true;
                 // this.treeGridView1.Rows[rowIndex].Cells[columnIndex].Selected = true;
             }
+
+            this.comboBox_persistence.SelectedIndex = (int)framework.StrategyManager.Persistence;
         }
 
         private void Clear()
@@ -555,6 +573,39 @@ namespace SmartQuant.Toolkit.Portfolio.Controls
         private void comboBox_show_type_SelectedIndexChanged(object sender, EventArgs e)
         {
             refresh();
+        }
+
+        private void checkBox_auto_refresh_CheckedChanged(object sender, EventArgs e)
+        {
+            bAutoRefresh = this.checkBox_auto_refresh.Checked;
+        }
+
+        private void comboBox_persistence_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //StrategyPersistence sp = (StrategyPersistence)Enum.Parse(typeof(StrategyPersistence), this.comboBox_persistence.SelectedItem.ToString());
+
+            //framework.StrategyManager.Persistence = sp;
+            //framework.StrategyManager_.Persistence = sp;
+        }
+
+        private void button_export_all_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            var helper = new QuantFileHelper(new Framework());
+
+            var strategy_name = framework.StrategyManager.Strategy.Name;
+            var portfolio = framework.PortfolioManager.GetByName(strategy_name);
+
+            helper.AppendMessagesToFile(strategy_name, Path.Combine(fbd.SelectedPath, "orders.quant"), framework.OrderManager.Messages, false);
+            helper.SavePortfolioToFile(strategy_name, Path.Combine(fbd.SelectedPath, "portfolios.quant"), portfolio);
+            helper.SaveInstrumentsToFile(Path.Combine(fbd.SelectedPath, "instruments.quant"), framework.InstrumentManager.Instruments);
+
+            helper.Close();
         }
     }
 }
